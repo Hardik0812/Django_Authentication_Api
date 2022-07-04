@@ -27,7 +27,7 @@ class UserAdmin(BaseUserAdmin):
         
     )
     search_fields = ('name',)
-    ordering = ('name',)
+    ordering = ('id',)
     filter_horizontal = ()
 
 

@@ -10,12 +10,35 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'password':{'write_only':True}
         }
 # validate password
-def validate(self,attrs):
-    password =attrs.get('password')
-    password2 = attrs.get('password2')
-    if password != password2:
-        raise serializers.ValidationError("Password do not match")
-    return attrs
+    def validate(self,attrs):
+        password =attrs.get('password')
+        password2 = attrs.get('password2')
+        if password != password2:
+            raise serializers.ValidationError("Password do not match")
+        return attrs
 
-def create(self,validate_data):
-    return User.objects.create_user(**validate_data)
+    def create(self,validate_data):
+        return User.objects.create_user(**validate_data)
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=255)
+    class Meta:
+        model = User
+        fields =['email', 'password']
+    
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length=255,write_only=True)
+    password2 = serializers.CharField(max_length=255,write_only=True)
+    class Meta:
+        model = User
+        fields = ['password', 'password2']
+
+    def validate(self, obj):
+        password = obj.get('password')
+        password2 = obj.get('password2')
+        user = self.context.get('user')
+        if password != password2:
+            raise serializers.ValidationError("password do not match")
+        user.set_password(password)
+        user.save()
+        return obj
