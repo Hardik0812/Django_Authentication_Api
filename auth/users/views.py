@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from multiprocessing import context
 from rest_framework import status
 from rest_framework.views import Response
 from rest_framework.views import APIView
@@ -10,7 +10,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
-
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
@@ -32,7 +31,7 @@ class UserLoginView(APIView):
             email = serializer.data.get('email')
             password = serializer.data.get('password')
             user = authenticate(email=email, password=password)
-            
+    
             if user is not None:
                 token = get_tokens_for_user(user)
                 return Response({'token':token,'msg':"Login Success"},status=status.HTTP_202_ACCEPTED)
@@ -46,6 +45,18 @@ class ChangePasswordView(APIView):
             return Response({'msg':"password changed successfully"},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
-class ResetPasswordView(APIView):
+class SentEmailResetPassword(APIView):
     def post(self, request,):
-        pass
+        serializers = SentEmailResetPasswordSerializer(data=request.data)
+        serializers.is_valid(raise_exception=True)
+        return Response({'msg':'Password Reset link send.Please check your email'},status=status.HTTP_200_OK)
+
+class UserPasswordResetView(APIView):
+    def post(self,request,uid,token):
+        serializers =UserPasswordResetSerializer(data = request.data,context={'uid':uid,'token':token})
+        serializers.is_valid(raise_exception=True)
+        return Response({'msg':'Password Reset Successfully'},status=status.HTTP_200_OK)
+
+
+
+    
